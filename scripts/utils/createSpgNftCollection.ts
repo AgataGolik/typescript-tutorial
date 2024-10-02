@@ -1,27 +1,19 @@
+import 'dotenv/config';
 import { StoryClient, StoryConfig } from '@story-protocol/core-sdk'
-import { http } from 'viem'
-import { account, RPCProviderUrl } from './utils'
+import { http, Address, Account } from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
 
 const main = async function () {
-    // 1. Set up your Story Config
-    //
-    // Docs: https://docs.story.foundation/docs/typescript-sdk-setup
+    const privateKey: Address = `0x${process.env.WALLET_PRIVATE_KEY}`;
+    const account: Account = privateKeyToAccount(privateKey)
+
     const config: StoryConfig = {
         account: account,
-        transport: http(RPCProviderUrl),
+        transport: http('https://testnet.storyrpc.io/'),
         chainId: 'iliad',
     }
     const client = StoryClient.newClient(config)
 
-    // 2. Create a new SPG NFT collection
-    //
-    // NOTE: Use this code to create a new SPG NFT collection. You can then use the
-    // `newCollection.nftContract` address as the `nftContract` argument in
-    // functions like `mintAndRegisterIpAssetWithPilTerms` in the `metadataExample.ts` file.
-    //
-    // You will mostly only have to do this once. Once you get your nft contract address,
-    // you can use it in SPG functions.
-    //
     const newCollection = await client.nftClient.createNFTCollection({
         name: 'Test NFT',
         symbol: 'TEST',
@@ -34,4 +26,4 @@ const main = async function () {
     )
 }
 
-main()
+main ()
