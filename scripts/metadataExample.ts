@@ -1,69 +1,62 @@
-import { CreateIpAssetWithPilTermsResponse, IpMetadata, PIL_TYPE, StoryClient, StoryConfig } from '@story-protocol/core-sdk'
+import { StoryClient, StoryConfig, IpMetadata, PIL_TYPE } from '@story-protocol/core-sdk'
 import { http } from 'viem'
-import { NFTContractAddress, RPCProviderUrl, account } from './utils/utils'
+import { privateKeyToAccount, Address, Account } from 'viem/accounts'
 import { uploadJSONToIPFS } from './utils/uploadToIpfs'
-import { createHash } from 'crypto'
-
-// BEFORE YOU RUN THIS FUNCTION: Make sure to read the README
-// which contains instructions for running this metadata example.
+import { createHash } from 'crypto';
 
 const main = async function () {
-    // 1. Set up your Story Config
-    //
-    // Docs: https://docs.story.foundation/docs/typescript-sdk-setup
-    const config: StoryConfig = {
-        account: account,
-        transport: http(RPCProviderUrl),
-        chainId: 'iliad',
-    }
-    const client = StoryClient.newClient(config)
+  try {
+      const privateKey: Address = `0x${process.env.WALLET_PRIVATE_KEY}`;
+      const account: Account = privateKeyToAccount(privateKey);
+      
+      const config: StoryConfig = {  
+        account: account,  
+        transport: http(process.env.RPC_PROVIDER_URL),  
+        chainId: 'iliad',  
+      };  
+      const client = StoryClient.newClient(config);
 
-    // 2. Set up your IP Metadata
-    //
-    // Docs: https://docs.story.foundation/docs/ipa-metadata-standard
-    const ipMetadata: IpMetadata = client.ipAsset.generateIpMetadata({
-        title: 'My IP Asset',
-        description: 'This is a test IP asset',
+      const ipMetadata: IpMetadata = client.ipAsset.generateIpMetadata({
+        title: 'P2E Sonny',
+        description: 'Sony is the best',
         watermarkImg: 'https://picsum.photos/200',
         attributes: [
-            {
-                key: 'Rarity',
-                value: 'Legendary',
-            },
+          {
+            key: 'Rarity',
+            value: 'Legendary',
+          },
         ],
-    })
+      });
 
-    // 3. Set up your NFT Metadata
-    //
-    // Docs: https://eips.ethereum.org/EIPS/eip-721
-    const nftMetadata = {
+      const nftMetadata = {
         name: 'Test NFT',
-        description: 'This is a test NFT',
+        description: 'The best nft ever',
         image: 'https://picsum.photos/200',
-    }
+      };
 
-    // 4. Upload your IP and NFT Metadata to IPFS
-    const ipIpfsHash = await uploadJSONToIPFS(ipMetadata)
-    const ipHash = createHash('sha256').update(JSON.stringify(ipMetadata)).digest('hex')
-    const nftIpfsHash = await uploadJSONToIPFS(nftMetadata)
-    const nftHash = createHash('sha256').update(JSON.stringify(nftMetadata)).digest('hex')
+      const ipIpfsHash = await uploadJSONToIPFS(ipMetadata);
+      const ipHash = createHash('sha256').update(ipIpfsHash).digest('hex');
 
-    // 5. Register the NFT as an IP Asset
-    //
-    // Docs: https://docs.story.foundation/docs/spg-functions#mint--register--attach-terms
-    const response: CreateIpAssetWithPilTermsResponse = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
-        nftContract: NFTContractAddress,
-        pilType: PIL_TYPE.NON_COMMERCIAL_REMIX,
-        ipMetadata: {
-            ipMetadataURI: `https://ipfs.io/ipfs/${ipIpfsHash}`,
-            ipMetadataHash: `0x${ipHash}`,
-            nftMetadataURI: `https://ipfs.io/ipfs/${nftIpfsHash}`,
-            nftMetadataHash: `0x${nftHash}`,
-        },
-        txOptions: { waitForTransaction: true },
-    })
-    console.log(`Root IPA created at transaction hash ${response.txHash}, IPA ID: ${response.ipId}`)
-    console.log(`View on the explorer: https://explorer.story.foundation/ipa/${response.ipId}`)
+      const nftIpfsHash = await uploadJSONToIPFS(nftMetadata);
+      const nftHash = createHash('sha256').update(nftIpfsHash).digest('hex');
+
+      const response = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
+          nftContract: process.env.NFT_CONTRACT_ADDRESS as Address,
+          pilType: PIL_TYPE.NON_COMMERCIAL_REMIX,
+          ipMetadata: {
+              ipMetadataURI: `https://ipfs.io/ipfs/${ipIpfsHash}`,
+              ipMetadataHash: `0x${ipHash}`,
+              nftMetadataURI: `https://ipfs.io/ipfs/${nftIpfsHash}`,
+              nftMetadataHash: `0x${nftHash}`,
+          },
+          txOptions: { waitForTransaction: true }
+      });
+
+      console.log(`Root IPA created at transaction hash ${response.txHash}, IPA ID: ${response.ipId}`);
+      console.log(`View on the explorer: https://explorer.story.foundation/ipa/${response.ipId}`);
+  } catch (error) {
+      console.error('Error occurred:', error);
+  }
 }
 
-main()
+main();
