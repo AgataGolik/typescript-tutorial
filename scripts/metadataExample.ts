@@ -17,8 +17,8 @@ const main = async function () {
       const client = StoryClient.newClient(config);
 
       const ipMetadata: IpMetadata = client.ipAsset.generateIpMetadata({
-        title: 'P2E Sonny',
-        description: 'Sony is the best',
+        title: 'TEST NFT 1',
+        description: 'This NFT is the best',
         watermarkImg: 'https://picsum.photos/200',
         attributes: [
           {
