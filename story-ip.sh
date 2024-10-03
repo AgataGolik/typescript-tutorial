@@ -35,6 +35,7 @@ read -p "Enter Pinata JWT token: " JWT
 cat <<EOF > .env
 WALLET_PRIVATE_KEY=$WALLET
 PINATA_JWT=$JWT
+RPC_PROVIDER_URL=https://testnet.storyrpc.io
 EOF
 
 
